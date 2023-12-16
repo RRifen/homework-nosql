@@ -15,18 +15,19 @@ CREATE TABLE posts_by_user
     PRIMARY KEY (user_id, created_at)
 ) WITH CLUSTERING ORDER BY (created_at DESC);
 
--- topic_id - partition key
--- created_at - clustering_key
+-- (topic_id, date) - partition key
+-- created_at - clustering key
 -- Для задания 4
 CREATE TABLE posts_by_topic
 (
-    user_id    INT,
-    post_id    INT,
-    topic_id   INT,
-    username   VARCHAR,
-    created_at TIMESTAMP,
-    PRIMARY KEY (topic_id, created_at)
-) WITH CLUSTERING ORDER BY (created_at DESC);
+    user_id      INT,
+    post_id      INT,
+    topic_id     INT,
+    username     VARCHAR,
+    created_date DATE,
+    created_time TIMESTAMP,
+    PRIMARY KEY ((topic_id, created_date), created_time)
+) WITH CLUSTERING ORDER BY (created_time DESC);
 
 -- Тестовые данные для posts_by_user
 INSERT INTO posts_by_user(user_id, post_id, topic_id, username, content, created_at)
@@ -62,24 +63,23 @@ WHERE user_id = 2
   AND created_at > '2023-12-15';
 
 -- Тестовые данные для posts_by_topic
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (1, 1, 1, 'User1', '2023-12-15 23:59:59');
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (1, 4, 2, 'User1', '2023-12-15 23:20:31');
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (2, 5, 2, 'User2', '2023-12-15 23:20:32');
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (1, 2, 1, 'User1', '2023-12-14 23:59:59');
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (2, 3, 1, 'User2', '2023-12-15 23:19:31');
-INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_at)
-VALUES (2, 6, 1, 'User2', '2023-12-15 23:21:31');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (1, 1, 1, 'User1', '2023-12-15', '2023-12-15 23:59:59');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (1, 4, 2, 'User1', '2023-12-15', '2023-12-15 23:20:31');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (2, 5, 2, 'User2', '2023-12-15', '2023-12-15 23:20:32');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (1, 2, 1, 'User1', '2023-12-14', '2023-12-14 23:59:59');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (2, 3, 1, 'User2', '2023-12-15', '2023-12-15 23:19:31');
+INSERT INTO posts_by_topic(user_id, post_id, topic_id, username, created_date, created_time)
+VALUES (2, 6, 1, 'User2', '2023-12-15', '2023-12-15 23:21:31');
 
 -- Задание 4.
 -- Запрос, который бы доставал пользователей, которые сделали пост в заданный день по заданной теме, упорядоченные по времени - сначала новые.
 -- Запрос должен возвращать user_id, username, post_id, время создания поста.
-SELECT user_id, username, post_id, created_at
+SELECT user_id, username, post_id, created_time
 FROM posts_by_topic
-WHERE topic_id = 1
-  AND created_at >= '2023-12-15'
-  AND created_at < '2023-12-16'
+WHERE topic_id = 2
+  AND created_date = '2023-12-15';
