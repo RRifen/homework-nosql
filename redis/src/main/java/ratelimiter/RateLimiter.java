@@ -24,9 +24,13 @@ public class RateLimiter {
   public boolean pass() {
     long currentTimestamp = System.currentTimeMillis();
     long leftBorder = currentTimestamp - timeWindowSeconds * 1000;
-    while(redis.llen(label) > 0 && peekLeft() < leftBorder) {
-      redis.lpop(label);
+    long len = redis.llen(label);
+    int index = 0;
+    while(index < len && peekByIndex(index) < leftBorder) {
+      index++;
     }
+    redis.ltrim(label, index, len);
+
     long requestCount = redis.llen(label);
     if (requestCount < maxRequestCount) {
       redis.rpush(label, Long.toString(currentTimestamp));
@@ -35,8 +39,8 @@ public class RateLimiter {
     return false;
   }
 
-  private long peekLeft() {
-    return Long.parseLong(redis.lrange(label, 0, 0).get(0));
+  private long peekByIndex(int index) {
+    return Long.parseLong(redis.lrange(label, index, index).get(0));
   }
 
   public static void main(String[] args) {
