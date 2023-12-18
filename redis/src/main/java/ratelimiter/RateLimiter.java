@@ -24,23 +24,12 @@ public class RateLimiter {
   public boolean pass() {
     long currentTimestamp = System.currentTimeMillis();
     long leftBorder = currentTimestamp - timeWindowSeconds * 1000;
-    long len = redis.llen(label);
-    int index = 0;
-    while(index < len && peekByIndex(index) < leftBorder) {
-      index++;
-    }
-    redis.ltrim(label, index, len);
-
-    long requestCount = redis.llen(label);
-    if (requestCount < maxRequestCount) {
-      redis.rpush(label, Long.toString(currentTimestamp));
+    redis.zremrangeByScore(label, 0, leftBorder);
+    if (redis.zcard(label) < maxRequestCount) {
+      redis.zadd(label, currentTimestamp, Long.toString(currentTimestamp));
       return true;
     }
     return false;
-  }
-
-  private long peekByIndex(int index) {
-    return Long.parseLong(redis.lrange(label, index, index).get(0));
   }
 
   public static void main(String[] args) {
